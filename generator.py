@@ -1,71 +1,74 @@
 import os
 import sys
-import argparse
+import uuid
+import torch
+import numpy as np
+from PIL import Image
 
 # --- CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 trellis_path = os.path.join(current_dir, "TRELLIS")
+if trellis_path not in sys.path:
+    sys.path.append(trellis_path)
 
-if os.path.exists(trellis_path):
-    if trellis_path not in sys.path:
-        sys.path.append(trellis_path)
-else:
-    # En lugar de sys.exit, lanzamos un error que Modly pueda capturar
-    raise RuntimeError(f"No se encontró la carpeta TRELLIS en {trellis_path}")
-
-# --- IMPORTS DE LIBRERÍAS ---
+# Intentar importar TRELLIS
 try:
-    import torch
-    import numpy as np
-    from PIL import Image
-    # Intentamos importar TRELLIS solo si el path ya está listo
     from trellis.pipelines import TrellisImageTo3DPipeline
-    from trellis.utils import postprocessing_utils
-except Exception as e:
-    print(f"Error cargando dependencias: {e}")
-    # No cerramos el proceso, dejamos que Modly maneje el error
+except ImportError:
+    print("Error: No se pudo importar TRELLIS. Revisa la carpeta TRELLIS.")
 
 class TrellisModlyGenerator:
     def __init__(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.pipeline = None
+        # Carpeta para guardar los resultados dentro de la extensión
+        self.output_dir = os.path.join(current_dir, "outputs")
+        os.makedirs(self.output_dir, exist_ok=True)
 
     def load_model(self):
-        """Carga el modelo solo cuando es necesario para ahorrar VRAM al inicio"""
         if self.pipeline is None:
-            print("Cargando pipeline de Microsoft TRELLIS...")
+            print("Cargando modelo TRELLIS en la GPU...")
             self.pipeline = TrellisImageTo3DPipeline.from_pretrained("Microsoft/TRELLIS-image-to-3d")
             self.pipeline.to(self.device)
 
     def generate(self, image, seed=0):
-        # Modly ahora pasa los objetos directamente o rutas
-        self.load_model()
-        
-        # Si Modly pasa una ruta (string), la abrimos. Si es una imagen PIL, la usamos.
-        if isinstance(image, str):
-            input_img = Image.open(image).convert("RGB")
-        else:
-            input_img = image.convert("RGB")
+        """
+        Este método es el que llama Modly. 
+        'image' y 'seed' deben coincidir con los IDs del manifest.json
+        """
+        try:
+            self.load_model()
 
-        print(f"Generando 3D con semilla: {seed}")
-        
-        outputs = self.pipeline(
-            input_img,
-            num_samples=1,
-            return_flags=["mesh"],
-            preprocess_image=True
-        )
+            # 1. Manejar la entrada de imagen
+            # Si Modly manda una ruta de archivo, la abrimos
+            if isinstance(image, str) and os.path.exists(image):
+                input_img = Image.open(image).convert("RGB")
+            else:
+                input_img = image.convert("RGB")
 
-        # Devolvemos la malla para que Modly la guarde donde necesite
-        return outputs['mesh'][0]
+            # 2. Ejecutar la IA
+            print(f"Procesando imagen con semilla {seed}...")
+            torch.manual_seed(seed)
+            
+            outputs = self.pipeline(
+                input_img,
+                num_samples=1,
+                return_flags=["mesh"],
+                preprocess_image=True
+            )
 
-# El bloque main solo se usa para tus pruebas manuales en la terminal
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--output", required=True)
-    args = parser.parse_args()
+            # 3. Guardar el archivo .obj en una ruta real
+            mesh = outputs['mesh'][0]
+            filename = f"result_{uuid.uuid4().hex[:8]}.obj"
+            output_path = os.path.join(self.output_dir, filename)
+            
+            mesh.export(output_path)
+            print(f"Archivo guardado en: {output_path}")
 
-    gen = TrellisModlyGenerator()
-    mesh = gen.generate(args.input)
-    mesh.export(args.output)
+            # 4. DEVOLVER DICCIONARIO (Vital para evitar el Error 400)
+            # El ID 'mesh' debe coincidir con el ID del output en el manifest.json
+            return {"mesh": output_path}
+
+        except Exception as e:
+            print(f"ERROR DURANTE LA GENERACIÓN: {str(e)}")
+            return {"error": str(e)}
