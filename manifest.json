@@ -1,12 +1,40 @@
 {
-  "id": "trellis-3d-conda",
-  "name": "Microsoft TRELLIS (Conda)",
-  "description": "Microsoft TRELLIS for high-quality image-to-3D, running via local Conda environment.",
-  "version": "0.1.1",
-  "author": "Tu Nombre",
+  "id": "trellis-3d-kenjiro",
+  "name": "Microsoft TRELLIS",
+  "description": "High-quality image-to-3D generation using local GPU.",
+  "version": "0.1.2",
+  "author": "Kenjiro Campos",
   "icon": "icon.png",
+  "runtime": "conda",
+  "condaEnvName": "trellis-env",
   "generatorUrl": "generator.py",
-  "dependenciesUrl": "requirements.txt",
-  "runtime": "conda", 
-  "condaEnvName": "trellis-env" 
+  "nodes": [
+    {
+      "id": "trellis-generator",
+      "name": "Generate 3D Mesh (TRELLIS)",
+      "type": "generator",
+      "description": "Converts an image into a 3D model using TRELLIS pipeline.",
+      "params": [
+        {
+          "id": "image",
+          "name": "Input Image",
+          "type": "image",
+          "required": true
+        },
+        {
+          "id": "seed",
+          "name": "Seed",
+          "type": "number",
+          "default": 0
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mesh",
+          "name": "3D Mesh",
+          "type": "mesh"
+        }
+      ]
+    }
+  ]
 }
