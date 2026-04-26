@@ -1,29 +1,31 @@
 {
   "id": "trellis-3d-kenjiro",
   "name": "Microsoft TRELLIS",
-  "description": "High-quality image-to-3D generation using local GPU.",
-  "version": "0.1.2",
+  "description": "Generación de modelos 3D de alta calidad usando GPU local.",
+  "version": "0.1.3",
   "author": "Kenjiro Campos",
   "icon": "icon.png",
   "runtime": "conda",
   "condaEnvName": "trellis-env",
   "generatorUrl": "generator.py",
+  "generator_class": "TrellisModlyGenerator",
   "nodes": [
     {
       "id": "trellis-generator",
       "name": "Generate 3D Mesh (TRELLIS)",
       "type": "generator",
-      "description": "Converts an image into a 3D model using TRELLIS pipeline.",
+      "generator_class": "TrellisModlyGenerator",
+      "description": "Convierte una imagen en un modelo 3D usando el pipeline de TRELLIS.",
       "params": [
         {
           "id": "image",
-          "name": "Input Image",
+          "name": "Imagen de entrada",
           "type": "image",
           "required": true
         },
         {
           "id": "seed",
-          "name": "Seed",
+          "name": "Semilla",
           "type": "number",
           "default": 0
         }
@@ -31,7 +33,7 @@
       "outputs": [
         {
           "id": "mesh",
-          "name": "3D Mesh",
+          "name": "Malla 3D",
           "type": "mesh"
         }
       ]
