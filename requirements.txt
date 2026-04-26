@@ -1,0 +1,30 @@
+torch
+torchvision
+torchaudio
+transformers
+diffusers
+tqdm
+trimesh
+numpyPara tu personaje, usar la hoja de referencia que creamos con **TRELLIS** dentro de **Modly** es la combinación perfecta. TRELLIS genera mallas de alta calidad y con buena topología, lo que te facilitará mucho el trabajo de limpieza posterior si decides animarlo.
+
+Aquí tienes una guía detallada para crear el esqueleto de tu extensión en **Windows usando Linux (a través de WSL, Windows Subsystem for Linux)**.
+
+### Requisitos Previos en tu Windows
+1.  **NVIDIA GPU:** Esencial para ejecutar estos modelos de IA localmente.
+2.  **WSL 2:** Si no lo tienes, abre PowerShell como administrador y ejecuta `wsl --install`. Instalará Ubuntu por defecto.
+3.  **VS Code:** Con la extensión oficial **"WSL"** para editar el código de Linux cómodamente desde Windows.
+
+---
+
+### Guía Paso a Paso dentro de WSL (Ubuntu)
+
+Abre tu terminal de WSL (Ubuntu) y sigue estos pasos.
+
+#### 1. Preparar el Entorno en Linux
+```bash
+# Actualizar el sistema e instalar Python, venv y pip
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-venv python3-pip git build-essential
+
+# Verificar la versión de Python (Modly requiere 3.10 o superior)
+python3 --version

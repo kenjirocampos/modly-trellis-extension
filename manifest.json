@@ -1,0 +1,12 @@
+{
+  "id": "trellis-3d-conda",
+  "name": "Microsoft TRELLIS (Conda)",
+  "description": "Microsoft TRELLIS for high-quality image-to-3D, running via local Conda environment.",
+  "version": "0.1.1",
+  "author": "Tu Nombre",
+  "icon": "icon.png",
+  "generatorUrl": "generator.py",
+  "dependenciesUrl": "requirements.txt",
+  "runtime": "conda", 
+  "condaEnvName": "trellis-env" 
+}
